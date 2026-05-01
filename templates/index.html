@@ -152,6 +152,20 @@
             margin-left: 8px;
         }
         .delete-btn:hover { color: #ff6b6b; }
+
+        /* 공유 링크: 삭제 버튼과 같은 자리/같은 톤이지만, hover 색은 위험 빨강이 아닌
+           포인트 컬러 보라로 둬서 "이건 위험 동작이 아니다" 를 시각적으로 구분합니다.
+           구조는 .delete-btn 과 거의 같습니다 — 학습 단계에서 비슷한 코드 3줄이
+           반복되는 것은 일부러 둡니다(헬퍼/공통 클래스로 빼지 않음). */
+        .share-link {
+            color: #888;                      /* 평소엔 회색으로 시선을 안 끌게 (.delete-btn 과 동일 톤) */
+            font-size: 1.2rem;                /* × 보다 살짝 작게 — 위험도 낮은 보조 동작 느낌 */
+            line-height: 1;
+            text-decoration: none;            /* <a> 기본 밑줄 제거 */
+            padding: 0 4px;
+            margin-left: 8px;
+        }
+        .share-link:hover { color: #6c7ae0; }
     </style>
 </head>
 
@@ -219,6 +233,16 @@
                         {{ todo.task }}
                     </button>
                 </form>
+
+                {#
+                  공유 페이지로 가는 링크.
+                  - <form> 이 아니라 <a> 인 이유: share 는 데이터를 바꾸지 않는 GET 라우트라
+                    의미상 "링크" 가 맞습니다. (→ [학습 포인트 D] 참고)
+                  - href 는 url_for('share', todo_id=todo.id) 로 만든 "/share/3" 같은 경로.
+                  - aria-label 은 화면낭독기에 동작 의미를 알려주기 위함입니다(🔗 기호만으로는 모호).
+                #}
+                <a href="{{ url_for('share', todo_id=todo.id) }}"
+                   class="share-link" aria-label="공유 링크 보기">🔗</a>
 
                 {#
                   삭제 폼.
