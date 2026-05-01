@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<!--
+  이 파일은 Flask 의 render_template 가 읽어 들이는 템플릿입니다.
+  파일을 templates/ 폴더 안에 두기만 하면, Flask 가 알아서 찾아 줍니다.
+
+  Jinja2 문법 3가지만 기억하면 됩니다:
+    {{ 변수 }}                          -> 변수 값을 그 자리에 출력
+    {% for x in xs %} ... {% endfor %}  -> 반복문
+    {% if 조건 %} ... {% else %} ... {% endif %}  -> 조건문
+-->
+<html lang="ko">
+<head>
+    <!-- 한글이 깨지지 않도록 문자 인코딩을 UTF-8 로 지정합니다. -->
+    <meta charset="UTF-8">
+
+    <!--
+      모바일(스마트폰) 에서 페이지가 너무 작게 줄어들지 않도록 알려 주는 태그입니다.
+      width=device-width  -> 화면 폭을 기기 실제 폭에 맞춰라
+      initial-scale=1.0   -> 처음 열었을 때 확대/축소 없이 100% 로 보여라
+      이 한 줄이 없으면 모바일 브라우저는 PC 화면을 작게 욱여넣어서 글씨가 깨알같이 보입니다.
+    -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- 브라우저 탭에 보일 페이지 제목 -->
+    <title>나의 할 일 목록</title>
+
+    <!--
+      CSS 를 별도 파일로 분리하지 않고 <style> 태그 안에 직접 적습니다.
+      학습 단계에서는 한 파일만 보면 되니까 단순합니다.
+      나중에 익숙해지면 static/ 폴더로 옮기게 됩니다.
+    -->
+    <style>
+        /* 페이지 전체 배경을 어둡게, 글씨를 밝게 -> 다크 테마 */
+        body {
+            background-color: #1e1e2e;        /* 어두운 남색 계열 배경 */
+            color: #e0e0e0;                   /* 밝은 회색 글씨 */
+            font-family: -apple-system, BlinkMacSystemFont,
+                         "Segoe UI", "Apple SD Gothic Neo",
+                         "Noto Sans KR", sans-serif;  /* 시스템 기본 폰트 */
+            max-width: 600px;                 /* 너무 넓게 퍼지지 않도록 제한 */
+            margin: 40px auto;                /* 위아래 여백 + 좌우 가운데 정렬 */
+            padding: 0 20px;                  /* 좁은 화면에서도 양옆 여백 확보 */
+            line-height: 1.6;
+        }
+
+        /* 상단 큰 제목 */
+        h1 {
+            font-size: 2rem;                  /* 본문보다 약 두 배 큰 글씨 */
+            text-align: center;               /* 가운데 정렬 */
+            margin-bottom: 30px;
+            color: #ffffff;                   /* 제목은 더 밝은 흰색 */
+        }
+
+        /* 목록(<ul>)의 기본 점(•) 제거, 안쪽 여백도 제거 */
+        ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        /* 각 할 일 항목을 카드처럼 보이게 */
+        li {
+            background-color: #2a2a3e;        /* 본문보다 살짝 밝은 카드 배경 */
+            padding: 14px 18px;               /* 안쪽 여백 */
+            margin-bottom: 10px;              /* 항목 사이 간격 */
+            border-radius: 8px;               /* 모서리를 둥글게 */
+            font-size: 1.05rem;
+
+            /*
+              안에 둘 자식(왼쪽: 토글 영역, 오른쪽: 삭제 버튼)을 한 줄에 나란히 배치하기 위해
+              flex 레이아웃을 사용합니다. align-items: center 는 세로 중앙 정렬.
+            */
+            display: flex;
+            align-items: center;
+        }
+
+        /* 완료된 항목: 흐리게 + 취소선 -> 끝낸 일이라는 느낌 */
+        .done {
+            opacity: 0.5;
+            text-decoration: line-through;
+        }
+
+        /* 진행 상황 표시 (제목 아래 작은 글씨) */
+        .progress {
+            text-align: center;
+            opacity: 0.7;
+            margin-top: -20px;     /* h1 의 margin-bottom 을 살짝 끌어당겨 가까이 붙임 */
+            margin-bottom: 24px;
+        }
+
+        /* ─────────────────────────────────────────────
+           "할 일 추가" 폼: input 과 버튼을 한 줄에 나란히 배치
+           ───────────────────────────────────────────── */
+        .add-form {
+            display: flex;
+            gap: 8px;                         /* input 과 버튼 사이 간격 */
+            margin-bottom: 20px;
+        }
+        .add-form input {
+            flex: 1;                          /* 남는 공간을 input 이 다 차지하도록 */
+            background-color: #2a2a3e;        /* 카드 배경과 같은 톤으로 통일감 */
+            color: #e0e0e0;
+            border: 1px solid #3a3a4e;
+            border-radius: 6px;
+            padding: 10px 12px;
+            font-size: 1rem;
+        }
+        .add-form input:focus {
+            outline: none;                    /* 브라우저 기본 파란 테두리 제거 */
+            border-color: #6c7ae0;            /* 포커스 시 보라색 강조 */
+        }
+        .add-form button {
+            background-color: #6c7ae0;        /* 페이지의 포인트 컬러 */
+            color: #ffffff;
+            border: none;
+            border-radius: 6px;
+            padding: 0 16px;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+        .add-form button:hover { background-color: #7d8aef; }
+
+        /* ─────────────────────────────────────────────
+           각 li 안의 폼들: 기본 form margin 을 없애고 자리 잡기
+           ───────────────────────────────────────────── */
+        .toggle-form { flex: 1; margin: 0; }   /* 토글 영역이 li 의 남는 공간을 다 차지 */
+        .delete-form { margin: 0; }
+
+        /* 토글 버튼: 진짜 버튼처럼 보이지 않도록, 그냥 텍스트 클릭 영역으로 위장 */
+        .toggle-btn {
+            width: 100%;
+            text-align: left;
+            background: none;                 /* 배경/테두리 제거 -> 일반 텍스트처럼 보임 */
+            border: none;
+            color: inherit;                   /* li 의 글자색을 그대로 따라감 (.done 일 때 자연스럽게 흐려짐) */
+            font: inherit;                    /* 폰트도 그대로 */
+            text-decoration: inherit;         /* li.done 의 취소선이 버튼 텍스트에도 적용되도록
+                                                 (브라우저 기본 button 스타일이 가로막는 걸 풀어 줌) */
+            cursor: pointer;
+            padding: 0;
+        }
+
+        /* 삭제 버튼: 작고 흐릿하게, hover 시 빨강으로 위험 동작임을 시각적으로 알림 */
+        .delete-btn {
+            background: none;
+            border: none;
+            color: #888;                      /* 평소엔 회색으로 시선을 안 끌게 */
+            font-size: 1.4rem;
+            line-height: 1;
+            cursor: pointer;
+            padding: 0 4px;
+            margin-left: 8px;
+        }
+        .delete-btn:hover { color: #ff6b6b; }
+    </style>
+</head>
+
+<body>
+    <!-- 페이지 상단의 큰 제목 -->
+    <h1>📝 나의 할 일 목록</h1>
+
+    <!--
+      진행 상황 표시: app.py 에서 미리 계산해서 넘겨 준 done_count, total 을 그대로 출력합니다.
+      템플릿은 "표시" 만 책임지고, "계산" 은 파이썬 쪽에서 하는 것이 일반적인 분리 방식입니다.
+    -->
+    <p class="progress">{{ total }}개 중 {{ done_count }}개 완료</p>
+
+    <!--
+      "할 일 추가" 폼.
+      - action="{{ url_for('add') }}" : Jinja 가 라우트 함수 이름 'add' 로부터 URL 을 만들어 줍니다.
+                                        하드코딩된 "/add" 대신 url_for 를 쓰면, 나중에 경로가 바뀌어도
+                                        파이썬 쪽 데코레이터만 수정하면 끝나서 안전합니다.
+      - method="post"                : 서버 상태를 바꾸는 요청은 GET 이 아니라 POST 로 보내는 것이 관례입니다.
+                                        (GET 으로 보내면 URL 에 입력값이 노출되고, 새로고침 사고도 잘 납니다.)
+      - <input name="task">          : 이 name 값이 곧 서버에서 request.form.get("task") 의 키가 됩니다.
+                                        이 한 쌍의 약속이 어긋나면 서버가 입력값을 못 읽습니다.
+      - autocomplete="off"           : 브라우저 자동완성을 끔 (학습용 화면에서는 거슬려서)
+      - autofocus                    : 페이지가 뜨자마자 input 에 커서가 가도록
+    -->
+    <form action="{{ url_for('add') }}" method="post" class="add-form">
+        <input type="text" name="task"
+               placeholder="새 할 일을 입력하세요"
+               autocomplete="off" autofocus>
+        <button type="submit">추가</button>
+    </form>
+
+    <!--
+      아래 <ul> 안에서 Jinja2 의 for 반복문으로 todos 리스트를 하나씩 꺼냅니다.
+      파이썬에서 render_template("index.html", todos=todos) 로 넘긴 그 todos 입니다.
+    -->
+    <ul>
+        {% for todo in todos %}
+            <!--
+              li 태그의 class 를 todo.done 값에 따라 바꿉니다.
+              - done 이 True 면 class="done" (흐리게 + 취소선)
+              - done 이 False 면 class 값이 비어 있게 됩니다 (기본 스타일 그대로)
+
+              참고: 템플릿에서는 todo["done"] 대신 todo.done 으로 써도 동일합니다.
+              Jinja2 가 자동으로 딕셔너리 키 접근으로 바꿔 주거든요.
+
+              li 안에는 작은 폼 두 개가 들어갑니다:
+                - 왼쪽: "토글" 폼 (할 일 텍스트 전체가 클릭 가능한 버튼)
+                - 오른쪽: "삭제" 폼 (× 버튼)
+              JavaScript 없이 순수 HTML 폼 + 서버 왕복만으로 모든 상호작용을 처리합니다.
+            -->
+            <li class="{% if todo.done %}done{% endif %}">
+
+                {#
+                  완료 토글 폼.
+                  - action 은 url_for('toggle', todo_id=todo.id) 로 만든 URL.
+                    예: id 가 3 이면 "/toggle/3" 이 됩니다.
+                  - 버튼 안에 ✓/○ 기호와 할 일 텍스트가 통째로 들어가서,
+                    텍스트 어디를 눌러도 토글이 됩니다 (클릭 영역이 넓어 모바일에서도 편함).
+                #}
+                <form action="{{ url_for('toggle', todo_id=todo.id) }}"
+                      method="post" class="toggle-form">
+                    <button type="submit" class="toggle-btn">
+                        {% if todo.done %}✓{% else %}○{% endif %}
+                        {{ todo.task }}
+                    </button>
+                </form>
+
+                {#
+                  삭제 폼.
+                  - 토글 폼과는 분리된 별도 폼이라, 두 버튼의 클릭 영역이 서로 겹치지 않습니다.
+                  - aria-label 은 화면낭독기(스크린리더) 사용자에게 "이 버튼이 삭제 버튼" 임을
+                    알려주는 표지입니다. × 기호 하나만 있으면 시각장애인 사용자는 이게 무슨 동작인지
+                    알 수 없으므로 접근성을 위해 꼭 붙여 둡니다.
+                #}
+                <form action="{{ url_for('delete', todo_id=todo.id) }}"
+                      method="post" class="delete-form">
+                    <button type="submit" class="delete-btn" aria-label="삭제">×</button>
+                </form>
+            </li>
+        {% else %}
+            {#
+              Jinja2 의 for-else 문법:
+              위 for 반복문이 한 번도 실행되지 않았을 때 (= todos 가 빈 리스트일 때)
+              아래 블록이 실행됩니다. 파이썬의 for-else 와 의미가 조금 다르니 주의!
+            #}
+            <li>아직 등록된 할 일이 없습니다.</li>
+        {% endfor %}
+    </ul>
+</body>
+</html>
