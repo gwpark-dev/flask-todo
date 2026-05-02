@@ -1,0 +1,14 @@
+{
+  "name": "gwpark-dev-marketplace",
+  "owner": {
+    "name": "gwpark-dev",
+    "email": "gw03010.dev@gmail.com"
+  },
+  "plugins": [
+    {
+      "name": "flask-tutorial",
+      "source": "./flask-tutorial-plugin",
+      "description": "Flask 학습용 워크플로 패키지 (Skill + Subagent)"
+    }
+  ]
+}

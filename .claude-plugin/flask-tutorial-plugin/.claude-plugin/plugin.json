@@ -1,0 +1,15 @@
+{
+  "name": "flask-tutorial",
+  "version": "0.1.0",
+  "description": "Flask 학습용 워크플로 패키지 (Skill + Subagent). flask-todo 같은 학습용 Flask 프로젝트에서 라우트 추가 절차와 코드 리뷰를 자동화합니다.",
+  "author": {
+    "name": "gwpark-dev",
+    "email": "gw03010.dev@gmail.com"
+  },
+  "keywords": ["flask", "tutorial", "learning", "korean"],
+  "components": {
+    "skills": ["skills/add-route"],
+    "agents": ["agents/code-reviewer.md"]
+  },
+  "notes": "학습 데모용 plugin. 실제 marketplace 등록을 위한 production 패키지가 아니라, plugin 구조를 체험하기 위한 정적 자산 모음입니다. Hook 은 OS 의존성(PowerShell .ps1) 때문에 의도적으로 제외되었습니다."
+}
