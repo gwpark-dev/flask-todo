@@ -32,7 +32,7 @@ python app.py
 
 1. **App + DB 설정** (`SQLALCHEMY_DATABASE_URI = "sqlite:///todo.db"` → 실제 파일은 `instance/todo.db`)
 2. **`Todo` 모델** — `id` / `task` / `done` 3개 컬럼만. 주석에 학습 포인트 A/B/C 라벨이 박혀 있음.
-3. **라우트 4개** — `index` (GET /), `add` (POST), `toggle` (POST), `delete` (POST). 모든 변경 라우트는 **PRG 패턴**으로 `redirect(url_for("index"))` 종료.
+3. **라우트 5개** — `index` (GET /), `add` (POST), `toggle` (POST), `delete` (POST), `share` (GET `/share/<id>`). 변경 라우트(`add`/`toggle`/`delete`)는 **PRG 패턴**으로 `redirect(url_for("index"))` 종료, 조회 라우트(`share`)는 `render_template` 으로 종료.
 4. **모듈 임포트 시점에 실행되는 부트스트랩 블록**:
    ```python
    with app.app_context():
@@ -43,7 +43,7 @@ python app.py
    ```
    요청 컨텍스트 밖에서 DB 를 만지므로 `app.app_context()` 가 반드시 필요합니다.
 
-`templates/index.html` 는 Jinja2 단일 템플릿. 진행률 표시 + 추가 폼 + 항목 리스트(각 항목당 토글 폼/삭제 폼 2개)로 구성. JS 없이 순수 HTML 폼 왕복으로 동작합니다.
+`templates/` 안에는 Jinja2 템플릿 두 개가 있습니다. `index.html` 은 진행률 표시 + 추가 폼 + 항목 리스트(각 항목당 토글 폼/삭제 폼/공유 링크)로 구성된 메인 화면, `share.html` 은 단건 할 일을 읽기 전용으로 보여 주는 공유 화면입니다. 두 템플릿 모두 JS 없이 순수 HTML 폼/링크 왕복으로 동작합니다.
 
 ## 작업 시 주의할 함정
 

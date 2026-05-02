@@ -21,6 +21,7 @@
 - [x] 할 일 삭제
 - [x] 완료 개수 / 전체 개수 표시
 - [x] SQLite 파일에 영구 저장 (서버를 껐다 켜도 유지)
+- [x] 🔗 공유 페이지 (개별 할 일을 읽기 전용으로 보여주는 페이지)
 
 ---
 
@@ -41,10 +42,11 @@
 
 ```text
 flask-todo/
-├─ app.py              # Flask 앱 본체 (라우트 4개 + Todo 모델)
+├─ app.py              # Flask 앱 본체 (라우트 5개 + Todo 모델)
 ├─ requirements.txt    # 의존성 목록
 ├─ templates/
-│  └─ index.html       # Jinja2 템플릿 (목록 + 추가 폼)
+│  ├─ index.html       # Jinja2 템플릿 (목록 + 추가 폼)
+│  └─ share.html       # 개별 할 일 공유(읽기 전용) 페이지
 └─ instance/           # 런타임에 자동 생성, .gitignore 됨
    └─ todo.db          # SQLite 데이터베이스 파일
 ```
@@ -135,6 +137,14 @@ http://127.0.0.1:5000
 `db.create_all()` 처럼 요청 처리 밖에서 DB 를 만지려면, "지금부터 이 앱의 컨텍스트야" 를 직접 알려 줘야 합니다. 그래서 첫 실행 시 테이블 생성과 시드 삽입을 `app.app_context()` 블록 안에서 처리합니다.
 
 - 코드: `app.py` 하단의 `with app.app_context():` 블록
+
+### 6. GET 라우트의 모양 (POST/PRG 와의 대비)
+
+`/share/<int:todo_id>` 는 DB 를 건드리지 않고 "보여주기만" 하는 라우트입니다. 그래서 `methods=["POST"]` 도, 마지막의 `redirect(...)` 도 필요 없고 `render_template` 한 줄로 끝납니다. 트리거도 `<form>` 이 아니라 `<a href="...">` 링크입니다 — 부수효과가 없으니 주소창에 노출돼도 안전하기 때문이죠.
+
+한 줄 요약: **변경 라우트 = POST + PRG + form / 조회 라우트 = GET + render + 링크.** 코드에는 `[학습 포인트 D]` 라벨로 위치를 표시해 두었습니다.
+
+- 코드: `app.py` 의 `share(todo_id)` 함수, `templates/share.html`
 
 ---
 
